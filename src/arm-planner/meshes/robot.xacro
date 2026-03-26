@@ -1,0 +1,221 @@
+<?xml version="1.0" ?>
+<robot name="URDF" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Include your xacro files. Use package:// or $(find) style, whichever works for you. -->
+  <xacro:include filename="$(find arm_pkg)/description/materials.xacro" />
+  <xacro:include filename="$(find arm_pkg)/description/URDF.trans" />
+  <xacro:include filename="$(find arm_pkg)/description/URDF.gazebo" />
+
+
+  <!-- Root link with inertia (kept for dynamic purposes) -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="5.500306683749839e-09 1.7690045296987684e-08 -0.04351821247312735" rpy="0 0 0"/>
+      <mass value="9.665954367017239"/>
+      <inertia ixx="0.029174" iyy="0.029174" izz="0.044786" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Dummy link to serve as new base for KDL -->
+  <link name="dummy_base" />
+
+  <!-- Fixed joint between base_link and dummy_base (no need for joint states) -->
+  <joint name="base_to_dummy" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="dummy_base"/>
+  </joint>
+
+  <!-- JOINT 1: Was "Revolute 1", now "joint1" -->
+  <joint name="joint1" type="revolute">
+    <origin xyz="0.0 0.0 0.01" rpy="0 0 0"/>
+    <parent link="dummy_base"/>
+    <child link="Link_0_1"/>
+    <axis xyz="0.0 0.0 1.0"/>
+    <limit upper="3.141593" lower="-3.141593" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="Link_0_1">
+    <inertial>
+      <origin xyz="0.025147305768597313 3.714411619225575e-05 0.06827470074076418" rpy="0 0 0"/>
+      <mass value="9.512665721240847"/>
+      <inertia ixx="0.030352" iyy="0.037217" izz="0.039916" ixy="9e-06" iyz="-1.6e-05" ixz="-0.004461"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 -0.01" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_0_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.01" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_0_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- JOINT 2: Was "Revolute 2", now "joint2" -->
+  <joint name="joint2" type="revolute">
+    <origin xyz="0.0898 -0.0 0.085" rpy="0 0 0"/>
+    <parent link="Link_0_1"/>
+    <child link="Link_1_1"/>
+    <axis xyz="-1.0 0.0 0.0"/>
+    <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="Link_1_1">
+    <inertial>
+      <origin xyz="0.05116110784738716 -1.276329509484605e-09 0.17500000003731517" rpy="0 0 0"/>
+      <mass value="25.335856608089017"/>
+      <inertia ixx="0.54402" iyy="0.534675" izz="0.07227" ixy="0.0" iyz="0.000331" ixz="0.0003"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.0898 0 -0.095" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_1_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0898 0 -0.095" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_1_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- JOINT 3: Was "Revolute 3", now "joint3" -->
+  <joint name="joint3" type="revolute">
+    <origin xyz="0.0 0.0 0.35" rpy="0 0 0"/>
+    <parent link="Link_1_1"/>
+    <child link="Link_2_1"/>
+    <axis xyz="-1.0 0.0 0.0"/>
+    <limit upper="1.047198" lower="-3.141593" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="Link_2_1">
+    <inertial>
+      <origin xyz="-0.07858780325051475 0.07482766866821508 -0.00012906577646332185" rpy="0 0 0"/>
+      <mass value="27.641428291972183"/>
+      <inertia ixx="0.291742" iyy="0.075237" izz="0.302588" ixy="0.015471" iyz="0.000231" ixz="6.9e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.0898 -0.0 -0.445" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_2_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0898 -0.0 -0.445" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_2_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- JOINT 4: Was "Revolute 4", now "joint4" -->
+  <joint name="joint4" type="revolute">
+    <origin xyz="-0.0148 0.255 0.0" rpy="0 0 0"/>
+    <parent link="Link_2_1"/>
+    <child link="Link_3_1"/>
+    <axis xyz="1.0 0.0 0.0"/>
+    <limit upper="0.785398" lower="-4.014257" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="Link_3_1">
+    <inertial>
+      <origin xyz="0.05280646080955524 -0.00014958827631367244 0.014397391676137572" rpy="0 0 0"/>
+      <mass value="5.7113026691342785"/>
+      <inertia ixx="0.012888" iyy="0.015126" izz="0.014242" ixy="1.2e-05" iyz="7.1e-05" ixz="-0.001515"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.075 -0.255 -0.445" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_3_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.075 -0.255 -0.445" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_3_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- JOINT 5: Was "Revolute 5", now "joint5" -->
+  <joint name="joint5" type="revolute">
+    <origin xyz="0.07 0.0 0.08" rpy="0 0 0"/>
+    <parent link="Link_3_1"/>
+    <child link="Link_4_1"/>
+    <axis xyz="0.0 0.0 1.0"/>
+    <limit upper="3.141593" lower="-3.141593" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="Link_4_1">
+    <inertial>
+      <origin xyz="2.348099192109321e-05 0.004226979419264587 0.04977103581625053" rpy="0 0 0"/>
+      <mass value="4.854306730672969"/>
+      <inertia ixx="0.010705" iyy="0.012385" izz="0.008722" ixy="3e-06" iyz="-0.000517" ixz="-5e-06"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.145 -0.255 -0.525" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_4_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.145 -0.255 -0.525" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_4_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- JOINT 6: Was "Revolute 6", now "joint6" (type continuous is fine) -->
+  <joint name="joint6" type="continuous">
+    <origin xyz="0.0 0.0645 0.07" rpy="0 0 0"/>
+    <parent link="Link_4_1"/>
+    <child link="Link_5_1"/>
+    <axis xyz="0.0 -1.0 0.0"/>
+  </joint>
+
+  <link name="Link_5_1">
+    <inertial>
+      <origin xyz="2.1371793224034263e-15 0.017187500000006017 -3.774758283725532e-14" rpy="0 0 0"/>
+      <mass value="0.5137812985573593"/>
+      <inertia ixx="0.000129" iyy="0.000145" izz="0.000129" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.145 -0.3195 -0.595" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_5_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.145 -0.3195 -0.595" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://arm_pkg/description/meshes/Link_5_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+</robot>
