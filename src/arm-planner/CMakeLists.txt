@@ -23,6 +23,11 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-install(DIRECTORY meshes urdf DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY meshes urdf launch DESTINATION share/${PROJECT_NAME})
+
+install(PROGRAMS
+  src/command_position.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()
