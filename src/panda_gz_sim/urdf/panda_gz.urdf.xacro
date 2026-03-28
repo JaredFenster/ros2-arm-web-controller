@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+
+  <!-- ============================================================
+       Arguments
+       ============================================================ -->
+  <xacro:arg name="initial_positions_file"
+             default="$(find panda_gz_sim)/config/initial_positions.yaml" />
+
+  <!-- ============================================================
+       World anchor
+       A fixed 'world' link is required so that:
+         - Gazebo pins the robot base to the ground (no falling over)
+         - MoveIt / TF has a 'world' frame to plan in
+       ============================================================ -->
+  <link name="world"/>
+  <joint name="world_joint" type="fixed">
+    <parent link="world"/>
+    <child link="panda_link0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ============================================================
+       Panda arm + hand (visual/collision/kinematics only)
+       ============================================================ -->
+  <xacro:include filename="$(find moveit_resources_panda_description)/urdf/panda.urdf.xacro" />
+
+  <!-- ============================================================
+       gz_ros2_control Gazebo system plugin
+       This is the Gazebo-side plugin that starts controller_manager
+       and connects it to Gazebo physics. Without this tag the
+       controller_manager never comes up and joints fall freely.
+       ============================================================ -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find panda_gz_sim)/config/ros2_controllers.yaml</parameters>
+      <!-- Position hold gain for gz_ros2_control's internal PD loop.
+           Pure-P control: too high → oscillation, too low → gravity droop.
+           0.5 is stable for the Panda at 100 Hz controller / 1 kHz physics. -->
+      <position_proportional_gain>0.5</position_proportional_gain>
+    </plugin>
+  </gazebo>
+
+  <!-- ============================================================
+       ros2_control — Gazebo Sim (gz_ros2_control) hardware plugin
+       The arm joints use the GazeboSimSystem plugin so Gazebo drives
+       the simulation while ros2_control receives/sends commands.
+       ============================================================ -->
+  <ros2_control name="PandaGazeboSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <joint name="panda_joint1">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="panda_joint2">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">-0.785398</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="panda_joint3">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="panda_joint4">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">-2.356194</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="panda_joint5">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="panda_joint6">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">1.570796</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="panda_joint7">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.785398</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Gripper fingers -->
+    <joint name="panda_finger_joint1">
+      <command_interface name="position">
+        <param name="min">0</param>
+        <param name="max">0.08</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.035</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <!-- panda_finger_joint2 is a mimic joint: it mirrors panda_finger_joint1
+         and must NOT have a command interface or gz_ros2_control will abort. -->
+    <joint name="panda_finger_joint2">
+      <param name="mimic">panda_finger_joint1</param>
+      <param name="mechanial_reduction">1</param>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- ============================================================
+       Wrist-mounted depth camera
+       Attached to panda_hand so it moves with the end-effector.
+       The optical frame follows the ROS convention:
+         x → right, y → down, z → forward.
+       ============================================================ -->
+
+  <!-- Camera mount link (physical body) -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.04 0.09 0.025"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.04 0.09 0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.072"/>
+      <inertia ixx="1e-4" iyy="1e-4" izz="1e-4" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Mount the camera below the hand, pointing forward/down -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="panda_hand"/>
+    <child link="camera_link"/>
+    <!-- 8 cm below the hand centre, tilted 30° down to see the workspace -->
+    <origin xyz="0.0 0.0 -0.08" rpy="0 0.5236 0"/>
+  </joint>
+
+  <!-- Optical frame (ROS image convention) -->
+  <link name="camera_depth_optical_frame"/>
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_depth_optical_frame"/>
+    <!-- rotate so Z is forward, Y is down -->
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <!-- ============================================================
+       Gazebo sensor plugin for the depth camera
+       Publishes:
+         /camera/depth/image_raw        (sensor_msgs/Image, 32FC1 depth)
+         /camera/depth/camera_info      (sensor_msgs/CameraInfo)
+         /camera/color/image_raw        (sensor_msgs/Image, RGB)
+         /camera/color/camera_info      (sensor_msgs/CameraInfo)
+         /camera/depth/points           (sensor_msgs/PointCloud2)
+  ============================================================ -->
+  <gazebo reference="camera_link">
+    <sensor name="depth_camera" type="depth_camera">
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+
+      <camera name="depth_camera">
+        <horizontal_fov>1.047</horizontal_fov>  <!-- 60 degrees -->
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R_FLOAT32</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>5.0</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </camera>
+
+      <topic>camera/depth</topic>
+      <gz_frame_id>camera_depth_optical_frame</gz_frame_id>
+    </sensor>
+  </gazebo>
+
+  <!-- Separate RGB camera (same body, for colour texture) -->
+  <gazebo reference="camera_link">
+    <sensor name="rgb_camera" type="camera">
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>false</visualize>
+
+      <camera name="rgb_camera">
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>RGB_INT8</format>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>5.0</far>
+        </clip>
+      </camera>
+
+      <topic>camera/color</topic>
+      <gz_frame_id>camera_depth_optical_frame</gz_frame_id>
+    </sensor>
+  </gazebo>
+
+</robot>

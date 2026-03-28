@@ -1,0 +1,49 @@
+# ros_gz_bridge configuration
+# IMPORTANT: The /clock bridge must be first so controller_manager gets
+# sim time before any trajectory execution is attempted.
+
+# Gazebo sim clock → ROS /clock
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+
+# Maps Gazebo topic names → ROS topic names + message types.
+# Add this file to the bridge node via the config_file argument.
+
+# Depth image
+- ros_topic_name: "/camera/depth/image_raw"
+  gz_topic_name: "/camera/depth/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# Depth CameraInfo
+- ros_topic_name: "/camera/depth/camera_info"
+  gz_topic_name: "/camera/depth/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# Point cloud
+- ros_topic_name: "/camera/depth/points"
+  gz_topic_name: "/camera/depth/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
+# RGB image
+- ros_topic_name: "/camera/color/image_raw"
+  gz_topic_name: "/camera/color/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# RGB CameraInfo
+- ros_topic_name: "/camera/color/camera_info"
+  gz_topic_name: "/camera/color/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
