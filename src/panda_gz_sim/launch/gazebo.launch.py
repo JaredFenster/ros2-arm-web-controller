@@ -115,18 +115,10 @@ def generate_launch_description():
         parameters=[robot_description, {"use_sim_time": True}],
     )
 
-    # Static TF: world → panda_link0
-    # robot_state_publisher already publishes this via the world_joint in
-    # the URDF, but move_group sometimes needs it before RSP is fully up.
-    static_tf_world = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        name="static_tf_world_to_base",
-        arguments=["--x", "0", "--y", "0", "--z", "0",
-                   "--frame-id", "world", "--child-frame-id", "panda_link0"],
-        parameters=[{"use_sim_time": True}],
-        output="screen",
-    )
+    # NOTE: world → panda_link0 is already published by robot_state_publisher
+    # via the world_joint fixed joint in the URDF.  A duplicate static_transform_publisher
+    # for the same frame pair conflicts with RSP's /tf_static publication and
+    # can break the tf2_ros::MessageFilter inside PointCloudOctomapUpdater.
 
     # ------------------------------------------------------------------ #
     # 3. Spawn robot into Gazebo                                           #
@@ -152,24 +144,36 @@ def generate_launch_description():
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-        parameters=[{"use_sim_time": True}],
+        arguments=[
+            "joint_state_broadcaster",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "120",
+            "--switch-timeout", "120",
+        ],
         output="screen",
     )
 
     panda_arm_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["panda_arm_controller", "--controller-manager", "/controller_manager"],
-        parameters=[{"use_sim_time": True}],
+        arguments=[
+            "panda_arm_controller",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "120",
+            "--switch-timeout", "120",
+        ],
         output="screen",
     )
 
     panda_hand_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["panda_hand_controller", "--controller-manager", "/controller_manager"],
-        parameters=[{"use_sim_time": True}],
+        arguments=[
+            "panda_hand_controller",
+            "--controller-manager", "/controller_manager",
+            "--controller-manager-timeout", "120",
+            "--switch-timeout", "120",
+        ],
         output="screen",
     )
 
@@ -197,6 +201,22 @@ def generate_launch_description():
         executable="parameter_bridge",
         name="camera_bridge",
         parameters=[{"config_file": bridge_yaml}],
+        output="screen",
+    )
+
+    floor_image_projector = Node(
+        package="panda_gz_sim",
+        executable="floor_image_projector.py",
+        name="floor_image_projector",
+        parameters=[
+            {"use_sim_time": True},
+            {"image_topic": "/camera/color/image_raw"},
+            {"camera_info_topic": "/camera/color/camera_info"},
+            {"output_topic": "/camera/ground_projection"},
+            {"world_frame": "world"},
+            {"ground_z": 0.0},
+            {"pixel_step": 6},
+        ],
         output="screen",
     )
 
@@ -265,7 +285,6 @@ def generate_launch_description():
 
         gz_sim,
         robot_state_publisher,
-        static_tf_world,
 
         # Small timer to let Gazebo finish loading before spawning
         TimerAction(period=3.0, actions=[spawn_robot]),
@@ -274,6 +293,7 @@ def generate_launch_description():
         delay_arm_after_jsb,
 
         camera_bridge,
+        floor_image_projector,
         move_group_node,
         rviz_node,
     ])

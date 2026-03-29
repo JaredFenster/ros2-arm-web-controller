@@ -66,5 +66,32 @@
       </link>
     </model>
 
+    <!-- Small brown box on the ground below the gripper workspace -->
+    <model name="brown_box">
+      <static>true</static>
+      <pose>0.45 0 0.025 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.05</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.4 0.2 0.05 1</ambient>
+            <diffuse>0.5 0.25 0.07 1</diffuse>
+            <specular>0.1 0.05 0.01 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>

@@ -7,4 +7,9 @@ install(DIRECTORY launch urdf config worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/floor_image_projector.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()
