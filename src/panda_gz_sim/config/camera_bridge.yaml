@@ -20,9 +20,16 @@
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# RGB CameraInfo (used by floor image projection)
+# RGB CameraInfo
 - ros_topic_name: "/camera/color/camera_info"
   gz_topic_name: "/camera/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# Depth point cloud → consumed by MoveIt PointCloudOctomapUpdater
+- ros_topic_name: "/camera/depth/points"
+  gz_topic_name: "/camera/depth/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS

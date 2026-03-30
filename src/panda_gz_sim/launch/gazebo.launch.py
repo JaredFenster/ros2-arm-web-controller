@@ -212,10 +212,16 @@ def generate_launch_description():
             {"use_sim_time": True},
             {"image_topic": "/camera/color/image_raw"},
             {"camera_info_topic": "/camera/color/camera_info"},
-            {"output_topic": "/camera/ground_projection"},
+            {"output_topic": "/camera/ground_marker"},
             {"world_frame": "world"},
             {"ground_z": 0.0},
-            {"pixel_step": 6},
+            # World-space extent of the ground mesh (metres)
+            {"x_min": -0.3},
+            {"x_max":  1.0},
+            {"y_min": -0.7},
+            {"y_max":  0.7},
+            # Cells per metre — raise for sharper image, lower for better perf
+            {"pixels_per_meter": 50},
         ],
         output="screen",
     )
@@ -235,6 +241,10 @@ def generate_launch_description():
         .trajectory_execution(
             file_path=os.path.join(pkg_panda_gz_sim, "config", "moveit_controllers.yaml")
         )
+        # Feed the depth point cloud into MoveIt's Octomap for live collision avoidance
+        .sensors_3d(
+            file_path=os.path.join(pkg_panda_gz_sim, "config", "sensors_3d.yaml")
+        )
         .to_moveit_configs()
     )
 
@@ -245,10 +255,19 @@ def generate_launch_description():
         parameters=[
             moveit_config.to_dict(),
             {"use_sim_time": True},
+            # Publish incremental planning scene updates so RViz sees live
+            # Octomap/voxel changes instead of only the initial snapshot.
+            {"publish_planning_scene": True},
+            {"publish_geometry_updates": True},
+            {"publish_state_updates": True},
+            {"publish_transforms_updates": True},
             # panda_finger_joint1 drifts to ~-1e-15 after closing (float epsilon
             # below the lower bound of 0). Tolerate small bound violations so
             # CheckStartStateBounds doesn't abort every subsequent plan.
             {"start_state_max_bounds_error": 0.0001},
+            # Octomap — must match sensors_3d.yaml
+            {"octomap_frame": "world"},
+            {"octomap_resolution": 0.025},
         ],
     )
 
@@ -284,16 +303,44 @@ def generate_launch_description():
         gz_headless_arg,
 
         gz_sim,
-        robot_state_publisher,
 
-        # Small timer to let Gazebo finish loading before spawning
+        # Start the clock bridge first so /clock is available before anything
+        # that uses use_sim_time=True publishes TF or subscribes to topics.
+        # robot_state_publisher must receive at least one /clock tick before it
+        # publishes TF, otherwise all TF frames get wall-clock timestamps and
+        # the tf2 message filter inside OccupancyMapMonitor silently drops every
+        # point cloud (sim-time stamps never match wall-time TF entries).
+        camera_bridge,
+
+        # Give the clock bridge 1 s to connect and deliver the first /clock tick
+        # before starting RSP, move_group, and the rest.
+        TimerAction(period=1.0, actions=[
+            robot_state_publisher,
+            Node(
+                package="panda_gz_sim",
+                executable="pointcloud_restamper.py",
+                name="pointcloud_restamper",
+                parameters=[{"use_sim_time": True}],
+                output="screen",
+            ),
+            move_group_node,
+            floor_image_projector,
+            rviz_node,
+            # Box detector — waits idle until triggered via the service.
+            # Trigger with:  ros2 run panda_gz_sim scan_and_add_box.py
+            # Or:            ros2 service call /detect_and_add_box std_srvs/srv/Trigger "{}"
+            Node(
+                package="panda_gz_sim",
+                executable="box_detector.py",
+                name="box_detector",
+                parameters=[{"use_sim_time": True}],
+                output="screen",
+            ),
+        ]),
+
+        # Spawn robot 3 s after launch (Gazebo needs time to load the world)
         TimerAction(period=3.0, actions=[spawn_robot]),
 
         delay_jsb_after_spawn,
         delay_arm_after_jsb,
-
-        camera_bridge,
-        floor_image_projector,
-        move_group_node,
-        rviz_node,
     ])

@@ -36,10 +36,15 @@
   <exec_depend>moveit_simple_controller_manager</exec_depend>
   <exec_depend>moveit_configs_utils</exec_depend>
 
-  <!-- Camera projection node -->
+  <!-- Camera projection and box detection nodes -->
   <exec_depend>rclpy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>shape_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
 
   <export>
