@@ -30,7 +30,7 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- GUI camera — start close enough to see the robot clearly -->
+    <!-- I can confirm this does nothing. Its in the launch file now. -->
     <gui fullscreen="0">
       <camera name="user_camera">
         <!-- 1.5 m back, 0.8 m to the side, 1.2 m up, looking slightly down -->
@@ -47,7 +47,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>100 100</size>
+              <size>5 5</size>
             </plane>
           </geometry>
         </collision>
@@ -55,7 +55,7 @@
           <geometry>
             <plane>
               <normal>0 0 1</normal>
-              <size>100 100</size>
+              <size>5 5</size>
             </plane>
           </geometry>
           <material>
@@ -74,14 +74,14 @@
         <collision name="collision">
           <geometry>
             <box>
-              <size>0.1 0.1 0.05</size>
+              <size>0.05 0.05 0.5</size>
             </box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
             <box>
-              <size>0.1 0.1 0.05</size>
+              <size>0.05 0.05 0.5</size>
             </box>
           </geometry>
           <material>

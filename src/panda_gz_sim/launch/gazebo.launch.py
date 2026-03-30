@@ -30,6 +30,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    ExecuteProcess,
     IncludeLaunchDescription,
     RegisterEventHandler,
     TimerAction,
@@ -173,7 +174,7 @@ def generate_launch_description():
             "--controller-manager", "/controller_manager",
             "--controller-manager-timeout", "120",
             "--switch-timeout", "120",
-        ],
+        ],  
         output="screen",
     )
 
@@ -338,9 +339,25 @@ def generate_launch_description():
             ),
         ]),
 
+        # Move Gazebo GUI camera to a fixed vantage point once the GUI is up
+        TimerAction(period=5.0, actions=[
+            ExecuteProcess(
+                cmd=[
+                    "gz", "service",
+                    "-s", "/gui/move_to/pose",
+                    "--reqtype", "gz.msgs.GUICamera",
+                    "--reptype", "gz.msgs.Boolean",
+                    "--timeout", "500",
+                    "--req", "pose: {position:{x: 0.5, y:-0.6, z:0.6}, orientation:{x:-0, y:0, z:1.6, w:1}}",
+                ],
+                output="screen",
+            ),
+        ]),
+
         # Spawn robot 3 s after launch (Gazebo needs time to load the world)
         TimerAction(period=3.0, actions=[spawn_robot]),
 
         delay_jsb_after_spawn,
         delay_arm_after_jsb,
     ])
+
