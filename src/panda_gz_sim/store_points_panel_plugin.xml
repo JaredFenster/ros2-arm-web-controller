@@ -1,7 +1,0 @@
-<library path="store_points_panel">
-  <class name="panda_gz_sim/StorePointsPanel"
-         type="StorePointsPanel"
-         base_class_type="rviz_common::Panel">
-    <description>Button panel to call the store_points service</description>
-  </class>
-</library>

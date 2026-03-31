@@ -205,28 +205,6 @@ def generate_launch_description():
         output="screen",
     )
 
-    floor_image_projector = Node(
-        package="panda_gz_sim",
-        executable="floor_image_projector.py",
-        name="floor_image_projector",
-        parameters=[
-            {"use_sim_time": True},
-            {"image_topic": "/camera/color/image_raw"},
-            {"camera_info_topic": "/camera/color/camera_info"},
-            {"output_topic": "/camera/ground_marker"},
-            {"world_frame": "world"},
-            {"ground_z": 0.0},
-            # World-space extent of the ground mesh (metres)
-            {"x_min": -0.3},
-            {"x_max":  1.0},
-            {"y_min": -0.7},
-            {"y_max":  0.7},
-            # Cells per metre — raise for sharper image, lower for better perf
-            {"pixels_per_meter": 50},
-        ],
-        output="screen",
-    )
-
     # ------------------------------------------------------------------ #
     # 7. MoveIt 2 move_group                                               #
     # Uses the existing panda-arm MoveIt config but overrides the         #
@@ -319,24 +297,13 @@ def generate_launch_description():
             robot_state_publisher,
             Node(
                 package="panda_gz_sim",
-                executable="pointcloud_restamper.py",
-                name="pointcloud_restamper",
+                executable="map_points",
+                name="map_points",
                 parameters=[{"use_sim_time": True}],
                 output="screen",
             ),
             move_group_node,
-            floor_image_projector,
             rviz_node,
-            # Box detector — waits idle until triggered via the service.
-            # Trigger with:  ros2 run panda_gz_sim scan_and_add_box.py
-            # Or:            ros2 service call /detect_and_add_box std_srvs/srv/Trigger "{}"
-            Node(
-                package="panda_gz_sim",
-                executable="box_detector.py",
-                name="box_detector",
-                parameters=[{"use_sim_time": True}],
-                output="screen",
-            ),
         ]),
 
         # Move Gazebo GUI camera to a fixed vantage point once the GUI is up

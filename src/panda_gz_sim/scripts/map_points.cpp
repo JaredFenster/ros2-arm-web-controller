@@ -6,11 +6,13 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 #include <cmath>
+#include <chrono>
 #include <unordered_set>
 #include <tuple>
 
 // Voxel size in metres — one point kept per cell
 static constexpr float VOXEL_SIZE = 0.01f;
+static constexpr double MAX_CLOUD_AGE_SEC = 0.5;
 
 struct VoxelHash {
   std::size_t operator()(const std::tuple<int,int,int> & v) const {
@@ -51,11 +53,26 @@ public:
   {
     if (!latest_msg_) return;
 
+    const rclcpp::Time cloud_stamp(latest_msg_->header.stamp);
+    const bool has_valid_stamp = (latest_msg_->header.stamp.sec != 0) ||
+      (latest_msg_->header.stamp.nanosec != 0);
+    if (has_valid_stamp) {
+      const double age = (now() - cloud_stamp).seconds();
+      if (age > MAX_CLOUD_AGE_SEC) {
+        RCLCPP_WARN(
+          get_logger(),
+          "Latest cloud is stale (age %.3f s). Wait for a fresh frame before storing.",
+          age);
+        return;
+      }
+    }
+
     sensor_msgs::msg::PointCloud2 transformed;
     try {
       auto tf = tf_buffer_->lookupTransform(
         "world", latest_msg_->header.frame_id,
-        rclcpp::Time(0), rclcpp::Duration::from_seconds(0.5));
+        has_valid_stamp ? cloud_stamp : rclcpp::Time(0),
+        rclcpp::Duration::from_seconds(0.5));
       tf2::doTransform(*latest_msg_, transformed, tf);
     } catch (const tf2::TransformException & e) {
       RCLCPP_WARN(get_logger(), "Transform failed: %s", e.what());

@@ -32,8 +32,7 @@ ament_target_dependencies(store_points_panel
   rviz_common
   pluginlib
 )
-target_link_libraries(store_points_panel Qt5::Widgets)
-pluginlib_export_plugin_description_file(rviz_common store_points_panel_plugin.xml)
+
 
 install(TARGETS map_points store_points_panel
   DESTINATION lib/${PROJECT_NAME}
@@ -43,8 +42,5 @@ install(DIRECTORY launch urdf config worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(FILES store_points_panel_plugin.xml
-  DESTINATION share/${PROJECT_NAME}
-)
 
 ament_package()

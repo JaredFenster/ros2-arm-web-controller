@@ -2,11 +2,11 @@ sensors:
   - depth_pointcloud
 
 depth_pointcloud:
-    sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
-    point_cloud_topic: /camera/depth/points_stamped
-    max_range: 2.0
-    padding_offset: 0.02
-    padding_scale: 1.0
-    point_subsample: 1
-    max_update_rate: 1.0
-    filtered_cloud_topic: /camera/depth/points_filtered
+  sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+  point_cloud_topic: /camera/depth/points
+  max_range: 2.0
+  padding_offset: 0.02
+  padding_scale: 1.0
+  point_subsample: 1
+  max_update_rate: 1.0
+  filtered_cloud_topic: /camera/depth/points_filtered
